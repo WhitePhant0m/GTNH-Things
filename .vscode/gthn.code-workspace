@@ -1,0 +1,12 @@
+{
+  "folders": [
+    {
+      "name": "Root",
+      "path": "../"
+    },
+    {
+      "path": "../../GTNH-OC-Lua-Documentation",
+      "name": "OpenComputers Docs"
+    }
+  ]
+}

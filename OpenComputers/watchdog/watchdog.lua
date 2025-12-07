@@ -1,11 +1,46 @@
 local internet = require("internet")
+local filesystem = require("filesystem")
 
-local config = {
+local defaultConfig = {
   hours = { 3, 11, 17 },
   minute = 55,
   interval = 60, -- seconds
   offset = -5,   -- hours
 }
+
+local config = defaultConfig
+
+local function writeConfig()
+  local file = io.open("/root/watchdog_config.lua", "w")
+  if file then
+    file:write("return {\n")
+    file:write("  hours = { ")
+    for _, h in ipairs(defaultConfig.hours) do
+      file:write(h .. ", ")
+    end
+    file:write("},\n")
+    file:write("  minute = " .. defaultConfig.minute .. ",\n")
+    file:write("  interval = " .. defaultConfig.interval .. ",\n")
+    file:write("  offset = " .. defaultConfig.offset .. ",\n")
+    file:write("}\n")
+    file:close()
+  end
+end
+
+if filesystem.exists("/root/watchdog_config.lua") then
+  local success, _config = pcall(dofile, "/root/watchdog_config.lua")
+  if success and type(_config) == "table" then
+    for k, v in pairs(_config) do
+      config[k] = v
+    end
+  else
+    print("Error loading config, using default settings.")
+    writeConfig()
+  end
+else
+  writeConfig()
+end
+
 
 local function getRealTime()
   local handle = internet.request("http://worldtimeapi.org/api/timezone/Etc/UTC")

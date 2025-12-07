@@ -1,3 +1,6 @@
+-- Taken from GTNH discord: https://discord.com/channels/181078474394566657/1266797319974813747/1403507322906738879
+-- By user: @elephant1234
+
 local component = require("component")
 local sides = require("sides")
 local me = component.upgrade_me
@@ -16,12 +19,21 @@ robot.turnLeft()
 local slotCount = 1
 while slotCount <= inv.getInventorySize(sides.front) and inv.getStackInSlot(sides.front, slotCount) ~= nil do
   local stack = inv.getStackInSlot(sides.front, slotCount)
+  if stack == nil then
+    break
+  end
   local label = stack.label
   local j, _ = string.find(label, ":", 1, true)
   local name = string.sub(label, 1, j - 1)
   local target = tonumber(string.sub(label, j + 2))
   card_slots[name] = slotCount
   target_levels[name] = target
+
+  if target == nil then
+    print("Invalid card label: " .. label)
+    slotCount = slotCount + 1
+    goto continue
+  end
 
   if target > max_target then
     max_target = target
@@ -32,16 +44,17 @@ while slotCount <= inv.getInventorySize(sides.front) and inv.getStackInSlot(side
   slotCount = slotCount + 1;
 end
 
+::continue::
 print("Done, max target is " .. max_target)
 
 robot.turnLeft()
 robot.turnLeft()
 
-function set_redstone(l)
+local function set_redstone(l)
   rs.setOutput({ [0] = l, l, l, l, l, l })
 end
 
-function set_fluid(name)
+local function set_fluid(name)
   robot.turnLeft()
   robot.turnLeft()
 
@@ -63,7 +76,7 @@ function set_fluid(name)
   robot.turnLeft()
 end
 
-function swap_and_pump()
+local function swap_and_pump()
   print("Stopping pump")
   set_redstone(0)
   os.sleep(1)
