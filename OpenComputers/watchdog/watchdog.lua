@@ -3,6 +3,7 @@ local internet = require("internet")
 local computer = require("computer")
 local component = require("component")
 local gpu = component.gpu
+local redstone = require("redstone")
 
 local defaultConfig = {
   hours = { 3, 11, 17 },
@@ -69,6 +70,7 @@ else
   writeConfig()
 end
 
+os.sleep(1)
 
 local function getRealTime()
   local handle = internet.request("http://worldtimeapi.org/api/timezone/Etc/UTC")
@@ -126,17 +128,26 @@ end
 local warned = {}
 local lastTarget = nil
 
----@param text string
-local function write(text)
+local function clearText()
   if gpu then
     gpu.setForeground(0xFFFFFF)
     gpu.setBackground(0x000000)
     gpu.fill(1, 1, gpu.getResolution(), gpu.getResolution(), " ")
-    gpu.set(1, 1, text)
+  end
+end
+
+local function write(x, y, text)
+  if gpu then
+    gpu.set(x, y, text)
   else
     print(text)
   end
 end
+
+redstone.init({ frequency = 404 })
+
+local redstone_active = false
+clearText()
 
 while true do
   local realtime = getRealTime()
@@ -148,13 +159,14 @@ while true do
     if targetTs and targetTs ~= lastTarget then
       warned = {}
       lastTarget = targetTs
+      redstone_active = false
     end
 
     if secondsLeft then
       for _, warnSeconds in ipairs(config.warn_before) do
         if secondsLeft <= warnSeconds and secondsLeft > 0 and not warned[warnSeconds] then
           local minutes = math.floor(warnSeconds / 60)
-          write("Server restart in " .. minutes .. " minute(s).")
+          write(1, 1, "Server restart in " .. minutes .. " minute(s).")
           if config.beep and computer and computer.beep then
             computer.beep(1000, 0.2)
           end
@@ -162,8 +174,25 @@ while true do
         end
       end
 
+      -- Activate wireless redstone signal when at or past the scheduled minute
+      if temp.min >= config.minute and not redstone_active then
+        if redstone.setWirelessOutput(true) then
+          redstone_active = true
+          write(1, 2, "Univeral crafter loader DEACTIVED!")
+        else
+          write(1, 2, "Error: Failed to activate wireless redstone signal.")
+        end
+      elseif temp.min < config.minute and redstone_active then
+        if redstone.setWirelessOutput(false) then
+          redstone_active = false
+          write(1, 2, "Univeral crafter loader ACTIVED!")
+        else
+          write(1, 2, "Error: Failed to deactivate wireless redstone signal.")
+        end
+      end
+
       if secondsLeft <= 0 and not warned["now"] then
-        write("Server restart should be happening now.")
+        write(1, 1, "Server restart should be happening now.")
         if config.beep and computer and computer.beep then
           computer.beep(1500, 0.3)
         end
@@ -179,12 +208,12 @@ while true do
         text = text .. hours .. " hour(s) "
       end
       text = text .. (minutes % 60) .. " minute(s)."
-      write(text)
+      write(1, 1, text)
     else
-      write("No restart schedule configured.")
+      write(1, 1, "No restart schedule configured.")
     end
   else
-    write("Failed to get real-world time. Check internet card.")
+    write(1, 1, "Failed to get real-world time. Check internet card.")
   end
 
   os.sleep(config.interval)

@@ -18,11 +18,12 @@ print("Internet card detected, downloading latest watchdog...")
 
 -- Download latest files from GitHub
 local function updateScript()
-  local github_url = "https://raw.githubusercontent.com/WhitePhant0m/GTNH-Things/main/OpenComputers/watchdog/"
+  local github_url = "https://raw.githubusercontent.com/WhitePhant0m/GTNH-Things/main/OpenComputers/"
 
   local files = {
-    { remote = "autorun.lua", target = "/autorun.lua" },
-    { remote = "watchdog.lua", target = "/home/watchdog.lua" },
+    { remote = "watchdog/autorun.lua", target = "/autorun.lua" },
+    { remote = "watchdog/watchdog.lua", target = "/home/watchdog.lua" },
+    { remote = "lib/redstone.lua", target = "/lib/redstone.lua" },
   }
 
   local success = true
