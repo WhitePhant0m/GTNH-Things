@@ -21,9 +21,9 @@ local function updateScript()
   local github_url = "https://raw.githubusercontent.com/WhitePhant0m/GTNH-Things/main/OpenComputers/"
 
   local files = {
-    { remote = "watchdog/autorun.lua", target = "/autorun.lua" },
+    { remote = "watchdog/autorun.lua",  target = "/autorun.lua" },
     { remote = "watchdog/watchdog.lua", target = "/home/watchdog.lua" },
-    { remote = "lib/redstone.lua", target = "/lib/redstone.lua" },
+    { remote = "lib/redstone.lua",      target = "/lib/redstone.lua" },
   }
 
   local success = true
@@ -69,10 +69,12 @@ end
 
 if updateScript() then
   print("Starting watchdog...")
+  os.sleep(1)
   dofile("/home/watchdog.lua")
 else
   if filesystem.exists("/home/watchdog.lua") then
     print("Failed to download latest watchdog, starting existing version...")
+    os.sleep(1)
     dofile("/home/watchdog.lua")
   else
     print("Failed to download watchdog and no existing version found. Aborting.")
