@@ -1,15 +1,15 @@
-Component = require("component")
-Internet = require("internet")
-Gpu = Component.gpu
+local component = require("component")
+local internet = require("internet")
+local gpu = component.gpu
 
 local filesystem = require("filesystem")
 
-W, H = Gpu.getResolution()
+local w, h = gpu.getResolution()
 
-Gpu.fill(1, 1, W, H, " ")
-Gpu.set(1, 1, "Starting Watchdog...")
+gpu.fill(1, 1, w, h, " ")
+gpu.set(1, 1, "Starting Watchdog...")
 
-if not Component.isAvailable("internet") then
+if not component.isAvailable("internet") then
   print("No internet card detected, watchdog cannot run.")
   return
 end
@@ -30,7 +30,7 @@ local function updateScript()
   local handles = {}
   for _, file in ipairs(files) do
     local url = github_url .. file.remote
-    local handle = Internet.request(url)
+    local handle = internet.request(url)
     handles[file.remote] = { handle = handle, target = file.target }
   end
 
