@@ -5,6 +5,8 @@ local component = require("component")
 local gpu = component.gpu
 local redstone = require("redstone")
 
+local w, h = gpu.getResolution()
+
 local defaultConfig = {
   hours = { 4, 12, 18 },          -- hours in UTC time for restarts
   minute = 0,                     -- minute of the hour for restarts
@@ -134,12 +136,13 @@ local function clearText()
   if gpu then
     gpu.setForeground(0xFFFFFF)
     gpu.setBackground(0x000000)
-    gpu.fill(1, 1, gpu.getResolution(), gpu.getResolution(), " ")
+    gpu.fill(1, 1, w, h, " ")
   end
 end
 
 local function write(x, y, text)
   if gpu then
+    gpu.fill(1, 1, w, 1, " ")
     gpu.set(x, y, text)
   else
     print(text)
