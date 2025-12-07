@@ -8,13 +8,23 @@ local component = require("component")
 ---@field private wireless_frequency integer
 ---@field private default_side integer
 ---@field private bundled_color integer
+---@field private debug_enabled boolean
+---@field private fallback_on_failure boolean
 local redstone = {}
+
+local function log(msg)
+  if redstone.debug_enabled then
+    print("[redstone] " .. msg)
+  end
+end
 
 ---Initialize the redstone library with configuration
 ---@param opts table|nil Options table with:
 ---   - frequency: integer (default: 1) - wireless redstone frequency
 ---   - default_side: integer (default: 0/left) - default side for basic I/O
 ---   - bundled_color: integer (default: 0/black) - default color channel for bundled redstone
+---   - debug: boolean (default: false) - enable debug logging
+---   - fallback_on_failure: boolean (default: true) - if wireless calls fail, fall back to basic I/O
 function redstone.init(opts)
   opts = opts or {}
 
@@ -25,9 +35,21 @@ function redstone.init(opts)
 
   redstone.rs_component = component.redstone
 
+  redstone.debug_enabled = opts.debug or false
+  redstone.fallback_on_failure = opts.fallback_on_failure ~= false
+
+  local function hasMethod(name)
+    local fn = redstone.rs_component[name]
+    local ok = type(fn) == "function"
+    if ok then log("found method: " .. name) end
+    return ok
+  end
+
   -- Detect card tier by checking for tier 2 methods
-  redstone.has_wireless = type(redstone.rs_component.getWirelessInput) == "function"
-  redstone.has_bundled = type(redstone.rs_component.getBundledInput) == "function"
+    redstone.has_wireless = hasMethod("setWirelessOutput") or hasMethod("getWirelessInput")
+      or hasMethod("getWirelessFrequency") or hasMethod("setWirelessFrequency")
+  redstone.has_bundled = hasMethod("getBundledInput") or hasMethod("getBundledOutput")
+      or hasMethod("setBundledOutput")
 
   if redstone.has_wireless and redstone.has_bundled then
     redstone.tier = 2
@@ -38,8 +60,10 @@ function redstone.init(opts)
   -- Set wireless frequency if tier 2
   if redstone.tier == 2 then
     local freq = opts.frequency or 1
-    if redstone.rs_component.setWirelessFrequency(freq) then
-      redstone.wireless_frequency = freq
+    local ok = redstone.rs_component.setWirelessFrequency(freq)
+    redstone.wireless_frequency = freq
+    if ok then
+      log("Wireless frequency set to " .. tostring(freq))
     else
       print("Error: Failed to set wireless frequency to " .. freq)
     end
@@ -49,6 +73,11 @@ function redstone.init(opts)
   redstone.bundled_color = opts.bundled_color or 0 -- 0 = black
 
   print("Redstone library initialized (Tier " .. redstone.tier .. ")")
+  if redstone.debug_enabled then
+    print("[redstone] has_wireless=" .. tostring(redstone.has_wireless) ..
+      " has_bundled=" .. tostring(redstone.has_bundled) ..
+      " default_side=" .. tostring(redstone.default_side))
+  end
   return true
 end
 
@@ -79,18 +108,24 @@ end
 ---@param side integer|nil # side for fallback, defaults to default_side
 ---@return boolean success
 function redstone.setWirelessOutput(enabled, side)
+  local value = enabled and 15 or 0
+  side = side or redstone.default_side
+
   if redstone.has_wireless then
-    return redstone.rs_component.setWirelessOutput(enabled) ~= nil
-  else
-    print("Warning: Wireless redstone not available, falling back to basic I/O.")
-    local value = enabled and 15 or 0
-    side = side or redstone.default_side
-    if enabled then
-      return redstone.rs_component.setOutput(side, value) ~= nil
+    local ok = redstone.rs_component.setWirelessOutput(enabled)
+    if ok or ok == nil then
+      -- OC returns true/false; nil treated as success if no error occurred
+      return true
     else
-      return redstone.rs_component.setOutput(side, 0) ~= nil
+      log("Wireless set failed; ok=" .. tostring(ok))
+      if not redstone.fallback_on_failure then
+        return false
+      end
     end
   end
+
+  print("Warning: Wireless redstone not available or failed, falling back to basic I/O.")
+  return redstone.rs_component.setOutput(side, value) ~= nil
 end
 
 ---Get wireless redstone output state, with fallback to basic I/O

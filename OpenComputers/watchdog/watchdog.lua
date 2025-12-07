@@ -11,7 +11,7 @@ local defaultConfig = {
   interval = 60,                  -- seconds between checks
   offset = -5,                    -- hours relative to UTC
   warn_before = { 900, 300, 60 }, -- seconds before restart to warn (15m, 5m, 1m)
-  turn_off_before = 300,           -- seconds before restart to turn off redstone signal
+  turn_off_before = 300,          -- seconds before restart to turn off redstone signal
   beep = true,                    -- beep on warnings if the computer supports it
 }
 
@@ -146,10 +146,13 @@ local function write(x, y, text)
   end
 end
 
-redstone.init({ frequency = 404 })
 
 local redstone_active = false
 clearText()
+print("")
+print("")
+print("Initializing redstone library...")
+redstone.init({ frequency = 404, debug = true })
 
 while true do
   local realtime = getRealTime()
