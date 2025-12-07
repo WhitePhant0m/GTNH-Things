@@ -19,22 +19,12 @@ robot.turnLeft()
 local slotCount = 1
 while slotCount <= inv.getInventorySize(sides.front) and inv.getStackInSlot(sides.front, slotCount) ~= nil do
   local stack = inv.getStackInSlot(sides.front, slotCount)
-  if stack == nil then
-    break
-  end
   local label = stack.label
   local j, _ = string.find(label, ":", 1, true)
   local name = string.sub(label, 1, j - 1)
   local target = tonumber(string.sub(label, j + 2))
   card_slots[name] = slotCount
   target_levels[name] = target
-
-  if target == nil then
-    print("Invalid card label: " .. label)
-    slotCount = slotCount + 1
-    goto continue
-  end
-
   if target > max_target then
     max_target = target
   end
@@ -44,7 +34,6 @@ while slotCount <= inv.getInventorySize(sides.front) and inv.getStackInSlot(side
   slotCount = slotCount + 1;
 end
 
-::continue::
 print("Done, max target is " .. max_target)
 
 robot.turnLeft()
