@@ -33,10 +33,12 @@ function redstone.init(opts)
     return false
   end
 
-  local rs_address
-  for a, _ in component.list("redstone") do
-    rs_address = a
-    break
+  local rs_address = component.getPrimary and component.getPrimary("redstone")
+  if not rs_address then
+    for a, _ in component.list("redstone") do
+      rs_address = a
+      break
+    end
   end
 
   if not rs_address then
@@ -96,7 +98,7 @@ function redstone.init(opts)
       " default_side=" .. tostring(redstone.default_side))
 
     local methods = {}
-    for name in pairs(methods_map) do
+    for name, _ in pairs(methods_map) do
       methods[#methods + 1] = name
     end
     table.sort(methods)
