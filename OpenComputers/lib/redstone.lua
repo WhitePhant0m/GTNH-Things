@@ -33,12 +33,10 @@ function redstone.init(opts)
     return false
   end
 
-  local rs_address = component.getPrimary and component.getPrimary("redstone")
-  if not rs_address then
-    for a, _ in component.list("redstone") do
-      rs_address = a
-      break
-    end
+  local rs_address
+  for a, _ in component.list("redstone") do
+    rs_address = a
+    break
   end
 
   if not rs_address then
@@ -46,11 +44,7 @@ function redstone.init(opts)
     return false
   end
 
-  redstone.rs_component = component.proxy(rs_address)
-  if not redstone.rs_component then
-    print("Error: Failed to proxy redstone component.")
-    return false
-  end
+  redstone.rs_component = component.redstone
 
 
   redstone.debug_enabled = opts.debug or false
