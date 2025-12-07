@@ -181,14 +181,14 @@ while true do
       if secondsLeft > config.turn_off_before and not redstone_active then
         if redstone.setWirelessOutput(true) then
           redstone_active = true
-          write(1, 2, "Universal crafter loader ACTIVATED!")
+          write(1, 2, "Universal loader ACTIVATED!")
         else
           write(1, 2, "Error: Failed to deactivate redstone signal.")
         end
       elseif secondsLeft <= config.turn_off_before and secondsLeft > 0 and redstone_active then
         if redstone.setWirelessOutput(false) then
           redstone_active = false
-          write(1, 2, "Universal crafter loader DEACTIVATED!")
+          write(1, 2, "Universal loader DEACTIVATED!")
         else
           write(1, 2, "Error: Failed to activate redstone signal.")
         end
@@ -205,7 +205,7 @@ while true do
       local minutes = math.floor(secondsLeft / 60)
       local hours = math.floor(minutes / 60)
 
-      local text = "Current time (UTC" ..
+      local text = "Current Dino time (UTC" ..
           config.offset .. "): " .. temp.hour .. ":" .. temp.min .. " | Next restart in "
       if hours > 0 then
         text = text .. hours .. " hour(s) "
