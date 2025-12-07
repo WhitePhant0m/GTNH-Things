@@ -6,11 +6,12 @@ local gpu = component.gpu
 local redstone = require("redstone")
 
 local defaultConfig = {
-  hours = { 3, 11, 17 },
-  minute = 55,
+  hours = { 4, 12, 18 },          -- hours in UTC time for restarts
+  minute = 0,                     -- minute of the hour for restarts
   interval = 60,                  -- seconds between checks
   offset = -5,                    -- hours relative to UTC
   warn_before = { 900, 300, 60 }, -- seconds before restart to warn (15m, 5m, 1m)
+  turn_off_before = 300,           -- seconds before restart to turn off redstone signal
   beep = true,                    -- beep on warnings if the computer supports it
 }
 
@@ -48,6 +49,7 @@ local function writeConfig()
       file:write(s .. ", ")
     end
     file:write("},\n")
+    file:write("  turn_off_before = " .. config.turn_off_before .. ",\n")
     file:write("  beep = " .. tostring(config.beep) .. ",\n")
     file:write("}\n")
     file:close()
@@ -174,20 +176,20 @@ while true do
         end
       end
 
-      -- Activate wireless redstone signal when at or past the scheduled minute
-      if temp.min >= config.minute and not redstone_active then
+      -- Toggle redstone based on how many seconds remain until restart
+      if secondsLeft <= config.turn_off_before and secondsLeft > 0 and not redstone_active then
         if redstone.setWirelessOutput(true) then
           redstone_active = true
-          write(1, 2, "Univeral crafter loader DEACTIVED!")
+          write(1, 2, "Universal crafter loader DEACTIVATED!")
         else
-          write(1, 2, "Error: Failed to activate wireless redstone signal.")
+          write(1, 2, "Error: Failed to activate redstone signal.")
         end
-      elseif temp.min < config.minute and redstone_active then
+      elseif secondsLeft > config.turn_off_before and redstone_active then
         if redstone.setWirelessOutput(false) then
           redstone_active = false
-          write(1, 2, "Univeral crafter loader ACTIVED!")
+          write(1, 2, "Universal crafter loader ACTIVATED!")
         else
-          write(1, 2, "Error: Failed to deactivate wireless redstone signal.")
+          write(1, 2, "Error: Failed to deactivate redstone signal.")
         end
       end
 
