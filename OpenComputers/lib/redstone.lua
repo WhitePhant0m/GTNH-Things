@@ -33,14 +33,31 @@ function redstone.init(opts)
     return false
   end
 
-  redstone.rs_component = component.redstone
+  local rs_address
+  for a, _ in component.list("redstone") do
+    rs_address = a
+    break
+  end
+
+  if not rs_address then
+    print("Error: No redstone component address found.")
+    return false
+  end
+
+  redstone.rs_component = component.proxy(rs_address)
+  if not redstone.rs_component then
+    print("Error: Failed to proxy redstone component.")
+    return false
+  end
+
 
   redstone.debug_enabled = opts.debug or false
   redstone.fallback_on_failure = opts.fallback_on_failure ~= false
 
+  local methods_map = component.methods(rs_address) or {}
+
   local function hasMethod(name)
-    local fn = redstone.rs_component[name]
-    local ok = type(fn) == "function"
+    local ok = methods_map[name] == true or type(redstone.rs_component[name]) == "function"
     if ok then log("found method: " .. name) end
     return ok
   end
@@ -79,10 +96,8 @@ function redstone.init(opts)
       " default_side=" .. tostring(redstone.default_side))
 
     local methods = {}
-    for name, fn in pairs(redstone.rs_component) do
-      if type(fn) == "function" then
-        methods[#methods + 1] = name
-      end
+    for name in pairs(methods_map) do
+      methods[#methods + 1] = name
     end
     table.sort(methods)
     print("[redstone] methods: " .. table.concat(methods, ","))
