@@ -152,7 +152,7 @@ clearText()
 print("")
 print("")
 print("Initializing redstone library...")
-redstone.init({ frequency = 404, debug = true })
+redstone.init({ frequency = 404 })
 
 while true do
   local realtime = getRealTime()

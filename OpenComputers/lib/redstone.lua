@@ -46,7 +46,6 @@ function redstone.init(opts)
 
   redstone.rs_component = component.redstone
 
-
   redstone.debug_enabled = opts.debug or false
   redstone.fallback_on_failure = opts.fallback_on_failure ~= false
 
@@ -132,12 +131,12 @@ function redstone.setWirelessOutput(enabled, side)
   side = side or redstone.default_side
 
   if redstone.has_wireless then
-    local ok = redstone.rs_component.setWirelessOutput(enabled)
-    if ok or ok == nil then
-      -- OC returns true/false; nil treated as success if no error occurred
+    local success, result = pcall(redstone.rs_component.setWirelessOutput, enabled)
+    if success then
+      log("Wireless output set to " .. tostring(enabled))
       return true
     else
-      log("Wireless set failed; ok=" .. tostring(ok))
+      log("Wireless set failed: " .. tostring(result))
       if not redstone.fallback_on_failure then
         return false
       end
