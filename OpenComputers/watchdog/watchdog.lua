@@ -4,8 +4,6 @@ local computer = require("computer")
 local component = require("component")
 local gpu = component.gpu
 
-local _print = print
-
 local defaultConfig = {
   hours = { 3, 11, 17 },
   minute = 55,
@@ -128,14 +126,15 @@ end
 local warned = {}
 local lastTarget = nil
 
-local function print(text)
+---@param text string
+local function write(text)
   if gpu then
     gpu.setForeground(0xFFFFFF)
     gpu.setBackground(0x000000)
     gpu.fill(1, 1, gpu.getResolution(), gpu.getResolution(), " ")
     gpu.set(1, 1, text)
   else
-    _print(text)
+    print(text)
   end
 end
 
@@ -155,13 +154,7 @@ while true do
       for _, warnSeconds in ipairs(config.warn_before) do
         if secondsLeft <= warnSeconds and secondsLeft > 0 and not warned[warnSeconds] then
           local minutes = math.floor(warnSeconds / 60)
-          local hours = math.floor(minutes / 60)
-          if hours > 0 then
-            minutes = hours .. " hour(s)"
-          else
-            minutes = minutes .. " minute(s)"
-          end
-          print("Server restart in " .. minutes .. ".")
+          write("Server restart in " .. minutes .. " minute(s).")
           if config.beep and computer and computer.beep then
             computer.beep(1000, 0.2)
           end
@@ -170,21 +163,28 @@ while true do
       end
 
       if secondsLeft <= 0 and not warned["now"] then
-        print("Server restart should be happening now.")
+        write("Server restart should be happening now.")
         if config.beep and computer and computer.beep then
           computer.beep(1500, 0.3)
         end
         warned["now"] = true
       end
 
-      print("Current time (UTC" ..
-        config.offset ..
-        "): " .. temp.hour .. ":" .. temp.min .. " | Next restart in " .. math.floor(secondsLeft / 60) .. " minute(s)")
+      local minutes = math.floor(secondsLeft / 60)
+      local hours = math.floor(minutes / 60)
+
+      local text = "Current time (UTC" ..
+      config.offset .. "): " .. temp.hour .. ":" .. temp.min .. " | Next restart in "
+      if hours > 0 then
+        text = text .. hours .. " hour(s) "
+      end
+      text = text .. minutes .. " minute(s)."
+      write(text)
     else
-      print("No restart schedule configured.")
+      write("No restart schedule configured.")
     end
   else
-    print("Failed to get real-world time. Check internet card.")
+    write("Failed to get real-world time. Check internet card.")
   end
 
   os.sleep(config.interval)
