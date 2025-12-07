@@ -21,7 +21,7 @@ end
 ---Initialize the redstone library with configuration
 ---@param opts table|nil Options table with:
 ---   - frequency: integer (default: 1) - wireless redstone frequency
----   - default_side: integer (default: 0/left) - default side for basic I/O
+---   - default_side: integer (default: 0/bottom) - default side for basic I/O
 ---   - bundled_color: integer (default: 0/black) - default color channel for bundled redstone
 ---   - debug: boolean (default: false) - enable debug logging
 ---   - fallback_on_failure: boolean (default: true) - if wireless calls fail, fall back to basic I/O
@@ -69,7 +69,7 @@ function redstone.init(opts)
     end
   end
 
-  redstone.default_side = opts.default_side or 0   -- 0 = left
+  redstone.default_side = opts.default_side or 0   -- 0 = bottom
   redstone.bundled_color = opts.bundled_color or 0 -- 0 = black
 
   print("Redstone library initialized (Tier " .. redstone.tier .. ")")
@@ -77,6 +77,15 @@ function redstone.init(opts)
     print("[redstone] has_wireless=" .. tostring(redstone.has_wireless) ..
       " has_bundled=" .. tostring(redstone.has_bundled) ..
       " default_side=" .. tostring(redstone.default_side))
+
+    local methods = {}
+    for name, fn in pairs(redstone.rs_component) do
+      if type(fn) == "function" then
+        methods[#methods + 1] = name
+      end
+    end
+    table.sort(methods)
+    print("[redstone] methods: " .. table.concat(methods, ","))
   end
   return true
 end
