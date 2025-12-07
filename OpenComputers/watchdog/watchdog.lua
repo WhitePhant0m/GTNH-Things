@@ -1,4 +1,3 @@
-local internet = require("internet")
 local filesystem = require("filesystem")
 
 local defaultConfig = {
@@ -30,6 +29,7 @@ end
 if filesystem.exists("/home/watchdog_config.lua") then
   local success, _config = pcall(dofile, "/home/watchdog_config.lua")
   if success and type(_config) == "table" then
+    print("Config loaded successfully.")
     for k, v in pairs(_config) do
       config[k] = v
     end
@@ -38,12 +38,13 @@ if filesystem.exists("/home/watchdog_config.lua") then
     writeConfig()
   end
 else
+  print("No config found, creating default config.")
   writeConfig()
 end
 
 
 local function getRealTime()
-  local handle = internet.request("http://worldtimeapi.org/api/timezone/Etc/UTC")
+  local handle = Internet.request("http://worldtimeapi.org/api/timezone/Etc/UTC")
   if handle then
     local result = ""
     for chunk in handle do

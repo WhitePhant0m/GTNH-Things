@@ -16,42 +16,64 @@ end
 
 print("Internet card detected, downloading latest watchdog...")
 
--- Download latest watchdog from GitHub
-local function downloadWatchdog()
-  local github_url =
-  "https://raw.githubusercontent.com/WhitePhant0m/GTNH-Things/main/OpenComputers/watchdog/watchdog.lua"
-  local local_path = "/home/watchdog.lua"
+-- Download latest files from GitHub
+local function updateScript()
+  local github_url = "https://raw.githubusercontent.com/WhitePhant0m/GTNH-Things/main/OpenComputers/watchdog/"
 
-  local success = false
-  local handle = Internet.request(github_url)
+  local files = {
+    { remote = "autorun.lua", target = "/autorun.lua" },
+    { remote = "watchdog.lua", target = "/home/watchdog.lua" },
+  }
 
-  if handle then
-    local content = ""
-    for chunk in handle do
-      content = content .. chunk
-    end
+  local success = true
 
-    -- Write the downloaded content to local file
-    local file = io.open(local_path, "w")
-    if file then
-      file:write(content)
-      file:close()
-      print("Watchdog downloaded successfully!")
-      success = true
+  local handles = {}
+  for _, file in ipairs(files) do
+    local url = github_url .. file.remote
+    local handle = Internet.request(url)
+    handles[file.remote] = { handle = handle, target = file.target }
+  end
+
+  for remote, data in pairs(handles) do
+    local handle = data.handle
+    local target = data.target
+    if handle then
+      local content = ""
+      for chunk in handle do
+        content = content .. chunk
+      end
+
+      -- Write the downloaded content to local file
+      local dir = filesystem.path(target)
+      if dir and #dir > 0 then
+        filesystem.makeDirectory(dir)
+      end
+      local file = io.open(target, "w")
+      if file then
+        file:write(content)
+        file:close()
+        print(remote .. " -> " .. target .. " downloaded successfully!")
+      else
+        print("Error: Could not write " .. remote .. " file to " .. target .. ".")
+        success = false
+      end
     else
-      print("Error: Could not write watchdog file.")
+      print("Error: Failed to download " .. remote .. " from GitHub.")
+      success = false
     end
-  else
-    print("Error: Failed to download watchdog from GitHub.")
   end
 
   return success
 end
 
--- Download the watchdog, fall back to existing one if download fails
-if downloadWatchdog() or filesystem.exists("/home/watchdog.lua") then
+if updateScript() then
   print("Starting watchdog...")
   dofile("/home/watchdog.lua")
 else
-  print("Failed to download watchdog and no existing version found. Aborting.")
+  if filesystem.exists("/home/watchdog.lua") then
+    print("Failed to download latest watchdog, starting existing version...")
+    dofile("/home/watchdog.lua")
+  else
+    print("Failed to download watchdog and no existing version found. Aborting.")
+  end
 end
