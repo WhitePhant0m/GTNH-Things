@@ -148,10 +148,6 @@ end
 
 
 local redstone_active = false
-clearText()
-print("")
-print("")
-print("Initializing redstone library...")
 redstone.init({ frequency = 404 })
 
 while true do

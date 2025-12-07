@@ -58,7 +58,7 @@ function redstone.init(opts)
   end
 
   -- Detect card tier by checking for tier 2 methods
-    redstone.has_wireless = hasMethod("setWirelessOutput") or hasMethod("getWirelessInput")
+  redstone.has_wireless = hasMethod("setWirelessOutput") or hasMethod("getWirelessInput")
       or hasMethod("getWirelessFrequency") or hasMethod("setWirelessFrequency")
   redstone.has_bundled = hasMethod("getBundledInput") or hasMethod("getBundledOutput")
       or hasMethod("setBundledOutput")
@@ -84,8 +84,8 @@ function redstone.init(opts)
   redstone.default_side = opts.default_side or 0   -- 0 = bottom
   redstone.bundled_color = opts.bundled_color or 0 -- 0 = black
 
-  print("Redstone library initialized (Tier " .. redstone.tier .. ")")
   if redstone.debug_enabled then
+    print("Redstone library initialized (Tier " .. redstone.tier .. ")")
     print("[redstone] has_wireless=" .. tostring(redstone.has_wireless) ..
       " has_bundled=" .. tostring(redstone.has_bundled) ..
       " default_side=" .. tostring(redstone.default_side))
