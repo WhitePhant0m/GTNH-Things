@@ -148,6 +148,7 @@ end
 
 
 local redstone_active = false
+clearText()
 redstone.init({ frequency = 404 })
 
 while true do
