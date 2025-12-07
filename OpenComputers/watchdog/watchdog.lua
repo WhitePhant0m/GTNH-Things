@@ -1,14 +1,15 @@
 local filesystem = require("filesystem")
 local internet = require("internet")
 local computer = require("computer")
+local _print = print
 
 local defaultConfig = {
   hours = { 3, 11, 17 },
   minute = 55,
-  interval = 60,        -- seconds between checks
-  offset = -5,          -- hours relative to UTC
+  interval = 60,                  -- seconds between checks
+  offset = -5,                    -- hours relative to UTC
   warn_before = { 900, 300, 60 }, -- seconds before restart to warn (15m, 5m, 1m)
-  beep = true,          -- beep on warnings if the computer supports it
+  beep = true,                    -- beep on warnings if the computer supports it
 }
 
 local function copyTable(t)
@@ -124,6 +125,18 @@ end
 local warned = {}
 local lastTarget = nil
 
+local function print(text)
+  if computer and computer.gpu then
+    local gpu = computer.gpu
+    gpu.setForeground(0xFFFFFF)
+    gpu.setBackground(0x000000)
+    gpu.fill(1, 1, gpu.getResolution(), gpu.getResolution(), " ")
+    gpu.set(1, 1, text)
+  else
+    _print(text)
+  end
+end
+
 while true do
   local realtime = getRealTime()
 
@@ -140,7 +153,13 @@ while true do
       for _, warnSeconds in ipairs(config.warn_before) do
         if secondsLeft <= warnSeconds and secondsLeft > 0 and not warned[warnSeconds] then
           local minutes = math.floor(warnSeconds / 60)
-          print("Server restart in " .. minutes .. " minute(s).")
+          local hours = math.floor(minutes / 60)
+          if hours > 0 then
+            minutes = hours .. " hour(s)"
+          else
+            minutes = minutes .. " minute(s)"
+          end
+          print("Server restart in " .. minutes .. ".")
           if config.beep and computer and computer.beep then
             computer.beep(1000, 0.2)
           end
@@ -156,7 +175,9 @@ while true do
         warned["now"] = true
       end
 
-      print("Current time (UTC" .. config.offset .. "): " .. temp.hour .. ":" .. temp.min .. " | Next restart in " .. math.floor(secondsLeft / 60) .. " minute(s)")
+      print("Current time (UTC" ..
+        config.offset ..
+        "): " .. temp.hour .. ":" .. temp.min .. " | Next restart in " .. math.floor(secondsLeft / 60) .. " minute(s)")
     else
       print("No restart schedule configured.")
     end
