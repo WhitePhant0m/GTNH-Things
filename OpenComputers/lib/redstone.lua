@@ -59,7 +59,7 @@ function redstone.init(opts)
   local methods_map = component.methods(rs_address) or {}
 
   local function hasMethod(name)
-    local ok = methods_map[name] == true or type(redstone.rs_component[name]) == "function"
+    local ok = methods_map[name] ~= nil
     if ok then log("found method: " .. name) end
     return ok
   end
@@ -98,7 +98,7 @@ function redstone.init(opts)
       " default_side=" .. tostring(redstone.default_side))
 
     local methods = {}
-    for name, _ in pairs(methods_map) do
+    for name in pairs(methods_map) do
       methods[#methods + 1] = name
     end
     table.sort(methods)
