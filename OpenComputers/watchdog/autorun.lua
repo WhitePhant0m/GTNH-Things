@@ -1,14 +1,15 @@
-local component = require("component")
-local internet = require("internet")
-local gpu = component.gpu
+Component = require("component")
+Internet = require("internet")
+Gpu = Component.gpu
+
 local filesystem = require("filesystem")
 
-local w, h = gpu.getResolution()
+W, H = Gpu.getResolution()
 
-gpu.fill(1, 1, w, h, " ")
-gpu.set(1, 1, "Starting Watchdog...")
+Gpu.fill(1, 1, W, H, " ")
+Gpu.set(1, 1, "Starting Watchdog...")
 
-if not component.isAvailable("internet") then
+if not Component.isAvailable("internet") then
   print("No internet card detected, watchdog cannot run.")
   return
 end
@@ -17,11 +18,12 @@ print("Internet card detected, downloading latest watchdog...")
 
 -- Download latest watchdog from GitHub
 local function downloadWatchdog()
-  local github_url = "https://raw.githubusercontent.com/WhitePhant0m/GTNH-Things/main/OpenComputers/watchdog/watchdog.lua"
+  local github_url =
+  "https://raw.githubusercontent.com/WhitePhant0m/GTNH-Things/main/OpenComputers/watchdog/watchdog.lua"
   local local_path = "/home/watchdog.lua"
 
   local success = false
-  local handle = internet.request(github_url)
+  local handle = Internet.request(github_url)
 
   if handle then
     local content = ""

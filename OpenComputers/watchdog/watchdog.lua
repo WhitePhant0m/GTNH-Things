@@ -11,7 +11,7 @@ local defaultConfig = {
 local config = defaultConfig
 
 local function writeConfig()
-  local file = io.open("/root/watchdog_config.lua", "w")
+  local file = io.open("/home/watchdog_config.lua", "w")
   if file then
     file:write("return {\n")
     file:write("  hours = { ")
@@ -27,8 +27,8 @@ local function writeConfig()
   end
 end
 
-if filesystem.exists("/root/watchdog_config.lua") then
-  local success, _config = pcall(dofile, "/root/watchdog_config.lua")
+if filesystem.exists("/home/watchdog_config.lua") then
+  local success, _config = pcall(dofile, "/home/watchdog_config.lua")
   if success and type(_config) == "table" then
     for k, v in pairs(_config) do
       config[k] = v
