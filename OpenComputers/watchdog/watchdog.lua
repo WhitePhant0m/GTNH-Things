@@ -174,11 +174,11 @@ while true do
       local hours = math.floor(minutes / 60)
 
       local text = "Current time (UTC" ..
-      config.offset .. "): " .. temp.hour .. ":" .. temp.min .. " | Next restart in "
+          config.offset .. "): " .. temp.hour .. ":" .. temp.min .. " | Next restart in "
       if hours > 0 then
         text = text .. hours .. " hour(s) "
       end
-      text = text .. minutes .. " minute(s)."
+      text = text .. (minutes % 60) .. " minute(s)."
       write(text)
     else
       write("No restart schedule configured.")
