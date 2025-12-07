@@ -1,6 +1,9 @@
 local filesystem = require("filesystem")
 local internet = require("internet")
 local computer = require("computer")
+local component = require("component")
+local gpu = component.gpu
+
 local _print = print
 
 local defaultConfig = {
@@ -126,8 +129,7 @@ local warned = {}
 local lastTarget = nil
 
 local function print(text)
-  if computer and computer.gpu then
-    local gpu = computer.gpu
+  if gpu then
     gpu.setForeground(0xFFFFFF)
     gpu.setBackground(0x000000)
     gpu.fill(1, 1, gpu.getResolution(), gpu.getResolution(), " ")
