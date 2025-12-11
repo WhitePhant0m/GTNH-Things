@@ -15,6 +15,8 @@ local defaultConfig = {
   warn_before = { 900, 300, 60 }, -- seconds before restart to warn (15m, 5m, 1m)
   turn_off_before = 300,          -- seconds before restart to turn off redstone signal
   beep = true,                    -- beep on warnings if the computer supports it
+  cache_duration = 300,           -- seconds to cache time API response (5 minutes)
+  timezonedb_api_key = "",        -- TimezoneDB API key (get from https://timezonedb.com/)
 }
 
 local function copyTable(t)
@@ -53,6 +55,8 @@ local function writeConfig()
     file:write("},\n")
     file:write("  turn_off_before = " .. config.turn_off_before .. ",\n")
     file:write("  beep = " .. tostring(config.beep) .. ",\n")
+    file:write("  cache_duration = " .. config.cache_duration .. ",\n")
+    file:write("  timezonedb_api_key = \"" .. config.timezonedb_api_key .. "\",\n")
     file:write("}\n")
     file:close()
   end
@@ -82,26 +86,41 @@ local cache_uptime = nil
 local function getRealTime()
   local current_uptime = computer.uptime()
 
-  -- Use cached time with drift calculation if available
+  -- Use cached time if available and not expired
   if cached_time and cache_uptime then
     local elapsed = current_uptime - cache_uptime
-    return cached_time + math.floor(elapsed)
+    if elapsed < config.cache_duration then
+      return cached_time + math.floor(elapsed)
+    end
   end
 
-  -- Fetch time from API only on first call
-  local handle = internet.request("http://worldtimeapi.org/api/timezone/Etc/UTC")
+  -- Fetch fresh time from TimezoneDB API
+  if config.timezonedb_api_key == "" then
+    print("Error: TimezoneDB API key not configured. Please set it in /home/watchdog_config.lua")
+    return nil
+  end
+
+  local url = "http://api.timezonedb.com/v2.1/get-time-zone?key=" ..
+  config.timezonedb_api_key .. "&format=json&by=zone&zone=UTC"
+  local handle = internet.request(url)
   if handle then
     local result = ""
     for chunk in handle do
       result = result .. chunk
     end
 
-    local unixtime = result:match('"unixtime":(%d+)')
-    if unixtime then
-      cached_time = tonumber(unixtime + (config.offset * 3600))
+    local timestamp = result:match('"timestamp":(%d+)')
+    if timestamp then
+      cached_time = tonumber(timestamp + (config.offset * 3600))
       cache_uptime = current_uptime
       return cached_time
     end
+  end
+
+  -- Fallback to cached value even if expired, if API fails
+  if cached_time and cache_uptime then
+    local elapsed = current_uptime - cache_uptime
+    return cached_time + math.floor(elapsed)
   end
 
   return nil
