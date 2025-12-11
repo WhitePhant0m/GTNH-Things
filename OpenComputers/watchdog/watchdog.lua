@@ -144,11 +144,16 @@ local function getRealTime()
       result = result .. chunk
     end
 
-    local timestamp = result:match('"timestamp":(%d+)')
+    -- Match timestamp with optional whitespace after colon
+    local timestamp = result:match('"timestamp"%s*:%s*(%d+)')
+
     if timestamp then
-      cached_time = tonumber(timestamp + (config.offset * 3600))
+      cached_time = tonumber(timestamp) + (config.offset * 3600)
       cache_uptime = current_uptime
       return cached_time
+    else
+      print("Error: Could not parse timestamp from API response")
+      print("Response: " .. result)
     end
   end
 
