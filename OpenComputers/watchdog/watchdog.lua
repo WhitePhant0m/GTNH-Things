@@ -76,7 +76,19 @@ end
 
 os.sleep(1)
 
+local cached_time = nil
+local cache_uptime = nil
+
 local function getRealTime()
+  local current_uptime = computer.uptime()
+
+  -- Use cached time with drift calculation if available
+  if cached_time and cache_uptime then
+    local elapsed = current_uptime - cache_uptime
+    return cached_time + math.floor(elapsed)
+  end
+
+  -- Fetch time from API only on first call
   local handle = internet.request("http://worldtimeapi.org/api/timezone/Etc/UTC")
   if handle then
     local result = ""
@@ -86,9 +98,12 @@ local function getRealTime()
 
     local unixtime = result:match('"unixtime":(%d+)')
     if unixtime then
-      return tonumber(unixtime + (config.offset * 3600))
+      cached_time = tonumber(unixtime + (config.offset * 3600))
+      cache_uptime = current_uptime
+      return cached_time
     end
   end
+
   return nil
 end
 
