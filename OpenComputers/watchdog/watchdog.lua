@@ -11,7 +11,7 @@ local defaultConfig = {
   hours = { 4, 12, 18 },          -- hours in UTC time for restarts
   minute = 0,                     -- minute of the hour for restarts
   interval = 60,                  -- seconds between checks
-  offset = -5,                    -- hours relative to UTC
+  offset = 1,                     -- hours relative to UTC
   warn_before = { 900, 300, 60 }, -- seconds before restart to warn (15m, 5m, 1m)
   turn_off_before = 300,          -- seconds before restart to turn off redstone signal
   beep = true,                    -- beep on warnings if the computer supports it
@@ -208,7 +208,7 @@ while true do
       local minutes = math.floor(secondsLeft / 60)
       local hours = math.floor(minutes / 60)
 
-      local text = "Current Dino time (UTC" ..
+      local text = "Current Natte time (UTC" ..
           config.offset .. "): " .. temp.hour .. ":" .. temp.min .. " | Next restart in "
       if hours > 0 then
         text = text .. hours .. " hour(s) "
